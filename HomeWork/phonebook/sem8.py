@@ -14,13 +14,6 @@ def read_file(path, delimeter=','):
     return lines
 
 
-def back_to_menu(func):
-    def wrapper(*args, **kwargs):
-        func(*args, **kwargs)
-        input('Нажмите Enter, чтобы вернуться в меню')
-    return wrapper
-
-
 def input_data(prompt):
     while True:
         data = input(prompt)
@@ -29,19 +22,19 @@ def input_data(prompt):
         print('Вы оставили пустым поле для ввода')
 
 
-@back_to_menu
-def show_tbl(table):
+def show_tbl(table, show_id=False):
     max_width = [max(len(row[i]) for row in table) for i in range(len(table[0]))]  # для комфортного отображения
     print('_' * sum(max_width))
-    for row in table:
-        row = [elem.ljust(max_width[j]) for j, elem in enumerate(row)]
+    for id, row in enumerate(table):
+        row = [id] * show_id + [elem.ljust(max_width[j]) for j, elem in enumerate(row)]
         print(*row)
     print('-' * sum(max_width))
+    if not show_id:
+        input('Нажмите Enter, чтобы вернуться в меню')
 
 
-@back_to_menu
 def find_contact(table, by):
-    book = [{table[0][i]: item for i, item in enumerate(row)} for row in table[1:]]
+    book = [dict(zip(table[0], contact)) for contact in table[1:]]
     to_find = input_data(f'{by}: ').lower()
     success = False
     for record in book:
@@ -52,6 +45,7 @@ def find_contact(table, by):
             success = True
     if not success:
         print("Поиск не дал результатов :(")
+    input('Нажмите Enter, чтобы вернуться в меню')
 
 
 def add_row(table):
@@ -59,6 +53,11 @@ def add_row(table):
     data = [input_data(f'{field}: ') for field in fields]
     data += [input('Комментарий: ')]
     table.append(data)
+
+
+def del_row(table):
+    show_tbl(table, show_id=True)
+    del_contact = int(input('Кого удалить (введите id)? '))
 
 
 def leave_app(table, path):
@@ -94,6 +93,8 @@ while app_status:
         case 4:
             add_row(phonebook)
             show_tbl(phonebook)
+        case 6:
+            del_row(phonebook)
         case 0:
             app_status = False
             leave_app(phonebook, file_path)
